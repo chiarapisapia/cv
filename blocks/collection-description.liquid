@@ -1,0 +1,19 @@
+{% assign collection = closest.collection %}
+
+{% if collection.description != blank or request.design_mode %}
+  <div class="collection-description rte">
+    {% if collection.description != blank %}
+      {{ collection.description }}
+    {% elsif request.design_mode %}
+      <p>Collection description will appear here.</p>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Collection description",
+  "tag": null,
+  "settings": []
+}
+{% endschema %}
