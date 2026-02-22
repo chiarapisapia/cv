@@ -1,0 +1,491 @@
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+{% style %}
+  .ai-spotlight-links-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+  }
+  .ai-spotlight-links-component-{{ ai_gen_id }} {
+    --alignment: flex-start;
+    display: grid;
+    align-items: center;
+    grid-gap: 48px;
+    position: relative;
+    grid-template-columns: 1fr {{ block.settings.image_ratio }};
+    grid-template-areas: 'text image';
+  }
+  {% if block.settings.image_position == 'left' %}
+    @media screen and (min-width: 750px) {
+      .ai-spotlight-links-component-{{ ai_gen_id }} {
+        grid-template-areas: 'image text';
+        grid-template-columns: {{ block.settings.image_ratio }} 1fr;
+      }
+    }
+  {% endif %}
+  {% if block.settings.alignment == 'center' %}
+    .ai-spotlight-links-component-{{ ai_gen_id }} {
+      --alignment: center;
+    }
+    .ai-spotlight-links-component-{{ ai_gen_id }} .ai-spotlight-text-block-{{ ai_gen_id }} {
+      text-align: center;
+    }
+  {% elsif block.settings.alignment == 'right' %}
+    .ai-spotlight-links-component-{{ ai_gen_id }} {
+      --alignment: flex-end;
+    }
+    .ai-spotlight-links-component-{{ ai_gen_id }} .ai-spotlight-text-block-{{ ai_gen_id }} {
+      text-align: right;
+    }
+  {% endif %}
+  .ai-spotlight-links-container-{{ ai_gen_id }} {
+    display: flex;
+    gap: 16px;
+    flex-direction: column;
+    align-items: var(--alignment);
+    grid-area: text;
+  }
+  .ai-spotlight-link-item-{{ ai_gen_id }} {
+    cursor: pointer;
+    padding: 12px 0;
+    transition: opacity 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .ai-spotlight-link-item-{{ ai_gen_id }}:hover {
+    opacity: 0.7;
+  }
+  /* Only bold the heading (h3) on hover/active, not the paragraph */
+  .ai-spotlight-link-item-{{ ai_gen_id }}.active .ai-spotlight-text-block-{{ ai_gen_id }} h3,
+  .ai-spotlight-link-item-{{ ai_gen_id }}:hover .ai-spotlight-text-block-{{ ai_gen_id }} h3 {
+    font-weight: 600;
+  }
+  .ai-spotlight-text-block-{{ ai_gen_id }} h3 {
+    margin: 0 0 8px 0;
+    font-size: {{ block.settings.heading_size }}px;
+    font-weight: normal;
+  }
+  .ai-spotlight-text-block-{{ ai_gen_id }} p {
+    margin: 0;
+    font-size: {{ block.settings.text_size }}px;
+    opacity: 0.8;
+  }
+  .ai-spotlight-images-{{ ai_gen_id }} {
+    grid-area: image;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: {{ block.settings.image_border_radius }}px;
+  }
+  .ai-spotlight-slide-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+  .ai-spotlight-slide-{{ ai_gen_id }}.active {
+    opacity: 1;
+    position: relative;
+    pointer-events: auto;
+  }
+  .ai-spotlight-slide-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .ai-spotlight-image-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    aspect-ratio: 1;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ai-spotlight-image-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 300px;
+    max-height: 300px;
+  }
+  /* CTA always left-aligned regardless of container alignment */
+  .ai-spotlight-cta-{{ ai_gen_id }} {
+    align-self: flex-start;
+  }
+  @media screen and (max-width: 749px) {
+    .ai-spotlight-links-component-{{ ai_gen_id }} {
+      grid-template-columns: 1fr;
+      grid-template-areas: 'text' 'image';
+      grid-gap: 32px;
+    }
+    .ai-spotlight-links-container-{{ ai_gen_id }} {
+      gap: 12px;
+      justify-content: var(--alignment);
+    }
+    .ai-spotlight-text-block-{{ ai_gen_id }} h3 {
+      font-size: calc({{ block.settings.heading_size }}px * 0.8);
+    }
+    .ai-spotlight-text-block-{{ ai_gen_id }} p {
+      font-size: calc({{ block.settings.text_size }}px * 0.9);
+    }
+  }
+{% endstyle %}
+<div
+  class="ai-spotlight-links-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  <spotlight-links-{{ ai_gen_id }} class="ai-spotlight-links-component-{{ ai_gen_id }}">
+    <div class="ai-spotlight-links-container-{{ ai_gen_id }}">
+      {% for i in (1..4) %}
+        {% liquid
+          assign heading_key = 'link_' | append: i | append: '_heading'
+          assign text_key = 'link_' | append: i | append: '_text'
+          assign url_key = 'link_' | append: i | append: '_url'
+
+          assign heading = block.settings[heading_key]
+          assign text = block.settings[text_key]
+          assign url = block.settings[url_key]
+        %}
+
+        {% if heading != blank %}
+          <a
+            href="{{ url }}"
+            class="ai-spotlight-link-item-{{ ai_gen_id }} {% if forloop.first %}active{% endif %}"
+            data-index="{{ forloop.index0 }}"
+          >
+            <div class="ai-spotlight-text-block-{{ ai_gen_id }}">
+              <h3>{{ heading }}</h3>
+              {% if text != blank %}
+                <p>{{ text }}</p>
+              {% endif %}
+            </div>
+          </a>
+        {% endif %}
+      {% endfor %}
+
+      {% if block.settings.cta_label != blank %}
+        <a
+          href="{{ block.settings.cta_url }}"
+          class="button ai-spotlight-cta-{{ ai_gen_id }}"
+        >
+          {{ block.settings.cta_label }}
+        </a>
+      {% endif %}
+    </div>
+    <div class="ai-spotlight-images-{{ ai_gen_id }}">
+      {% for i in (1..4) %}
+        {% liquid
+          assign image_key = 'link_' | append: i | append: '_image'
+          assign heading_key = 'link_' | append: i | append: '_heading'
+
+          assign image = block.settings[image_key]
+          assign heading = block.settings[heading_key]
+        %}
+
+        {% if heading != blank %}
+          <div
+            class="ai-spotlight-slide-{{ ai_gen_id }} {% if forloop.first %}active{% endif %}"
+            data-index="{{ forloop.index0 }}"
+          >
+            {% if image %}
+              <img
+                src="{{ image | image_url: width: 1000 }}"
+                alt="{{ heading | escape }}"
+                loading="lazy"
+                width="{{ image.width }}"
+                height="{{ image.height }}"
+              >
+            {% else %}
+              <div class="ai-spotlight-image-placeholder-{{ ai_gen_id }}">
+                {{ 'image' | placeholder_svg_tag }}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </spotlight-links-{{ ai_gen_id }}>
+</div>
+<script>
+  (function() {
+    class SpotlightLinks{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.links = [];
+        this.slides = [];
+        this.currentIndex = 0;
+      }
+      connectedCallback() {
+        this.links = Array.from(this.querySelectorAll('.ai-spotlight-link-item-{{ ai_gen_id }}'));
+        this.slides = Array.from(this.querySelectorAll('.ai-spotlight-slide-{{ ai_gen_id }}'));
+
+        this.links.forEach((link, index) => {
+          link.addEventListener('mouseenter', () => {
+            this.switchTo(index);
+          });
+
+          link.addEventListener('click', (e) => {
+            if (!link.getAttribute('href') || link.getAttribute('href') === '') {
+              e.preventDefault();
+            }
+          });
+        });
+      }
+      switchTo(index) {
+        if (index === this.currentIndex) return;
+
+        this.links.forEach((link, i) => {
+          if (i === index) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+
+        this.slides.forEach((slide, i) => {
+          if (i === index) {
+            slide.classList.add('active');
+          } else {
+            slide.classList.remove('active');
+          }
+        });
+
+        this.currentIndex = index;
+      }
+    }
+    customElements.define('spotlight-links-{{ ai_gen_id }}', SpotlightLinks{{ ai_gen_id }});
+  })();
+</script>
+{% schema %}
+{
+  "name": "Spotlight links",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        {
+          "value": "0.8fr",
+          "label": "Portrait"
+        },
+        {
+          "value": "1fr",
+          "label": "Square"
+        },
+        {
+          "value": "1.4fr",
+          "label": "Landscape"
+        }
+      ],
+      "default": "1fr"
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "label": "Image border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size",
+      "min": 16,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Link 1"
+    },
+    {
+      "type": "text",
+      "id": "link_1_heading",
+      "label": "Heading",
+      "default": "First link"
+    },
+    {
+      "type": "text",
+      "id": "link_1_text",
+      "label": "Description"
+    },
+    {
+      "type": "url",
+      "id": "link_1_url",
+      "label": "Link"
+    },
+    {
+      "type": "image_picker",
+      "id": "link_1_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Link 2"
+    },
+    {
+      "type": "text",
+      "id": "link_2_heading",
+      "label": "Heading",
+      "default": "Second link"
+    },
+    {
+      "type": "text",
+      "id": "link_2_text",
+      "label": "Description"
+    },
+    {
+      "type": "url",
+      "id": "link_2_url",
+      "label": "Link"
+    },
+    {
+      "type": "image_picker",
+      "id": "link_2_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Link 3"
+    },
+    {
+      "type": "text",
+      "id": "link_3_heading",
+      "label": "Heading",
+      "default": "Third link"
+    },
+    {
+      "type": "text",
+      "id": "link_3_text",
+      "label": "Description"
+    },
+    {
+      "type": "url",
+      "id": "link_3_url",
+      "label": "Link"
+    },
+    {
+      "type": "image_picker",
+      "id": "link_3_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Link 4"
+    },
+    {
+      "type": "text",
+      "id": "link_4_heading",
+      "label": "Heading",
+      "default": "Fourth link"
+    },
+    {
+      "type": "text",
+      "id": "link_4_text",
+      "label": "Description"
+    },
+    {
+      "type": "url",
+      "id": "link_4_url",
+      "label": "Link"
+    },
+    {
+      "type": "image_picker",
+      "id": "link_4_image",
+      "label": "Image"
+    },
+    {
+      "type": "header",
+      "content": "Call to action"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Button label"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Button link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Spotlight links"
+    }
+  ]
+}
+{% endschema %}
